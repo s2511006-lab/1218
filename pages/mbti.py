@@ -1,66 +1,47 @@
 import streamlit as st
 from datetime import datetime
 
-# 1. 페이지 설정
-st.set_page_config(page_title="우리동네 중고장터", page_icon="🥕")
+# 1. 페이지 설정 (최상단)
+st.set_page_config(page_title="오픈 마켓", page_icon="🛍️", layout="centered")
 
-# 2. 데이터 저장소 초기화 (앱이 실행되는 동안 메모리에 유지됨)
-if 'items' not in st.session_state:
-    st.session_state.items = []
+# 2. 데이터 저장소(Session State) 초기화
+# 앱이 처음 실행될 때 'items' 리스트가 없으면 생성합니다.
+if "items" not in st.session_state:
+    st.session_state["items"] = []
 
-# 3. 사이드바 - 물건 올리기
+# 3. 사이드바: 상품 등록 양식
 with st.sidebar:
-    st.header("🥕 내 물건 팔기")
+    st.header("🎁 내 물건 팔기")
     with st.form("upload_form", clear_on_submit=True):
-        seller_name = st.text_input("판매자 닉네임")
-        item_name = st.text_input("물건 이름")
-        item_price = st.text_input("가격 (원)")
-        item_img = st.file_uploader("사진 업로드", type=['jpg', 'png', 'jpeg'])
-        submitted = st.form_submit_button("등록하기")
+        name = st.text_input("판매자 닉네임")
+        title = st.text_input("물건 이름")
+        price = st.text_input("가격 (원)")
+        img_file = st.file_uploader("사진 업로드", type=['jpg', 'png', 'jpeg'])
+        submit_btn = st.form_submit_button("등록 완료")
         
-        if submitted and seller_name and item_name and item_img:
-            new_item = {
-                "id": len(st.session_state.items),
-                "seller": seller_name,
-                "name": item_name,
-                "price": item_price,
-                "image": item_img.read(), # 사진을 바이너리로 저장
-                "chats": [],
-                "date": datetime.now().strftime("%Y-%m-%d %H:%M")
-            }
-            st.session_state.items.insert(0, new_item) # 최신글이 위로 오게 저장
-            st.success("게시글이 등록되었습니다!")
+        if submit_btn:
+            if name and title and img_file:
+                # 새 아이템 생성
+                new_post = {
+                    "id": len(st.session_state["items"]),
+                    "seller": name,
+                    "title": title,
+                    "price": price,
+                    "image": img_file.read(),
+                    "chats": [],
+                    "time": datetime.now().strftime("%H:%M")
+                }
+                # 최신글이 위로 오게 저장
+                st.session_state["items"].insert(0, new_post)
+                st.success("물건이 등록되었습니다!")
+            else:
+                st.error("모든 항목을 입력하고 사진을 올려주세요.")
 
-# 4. 메인 화면 - 게시글 목록 및 채팅
-st.title("🥕 당근 스타일 중고거래")
-st.write("실시간으로 올라온 물건을 확인하고 대화를 나눠보세요.")
+# 4. 메인 화면: 물건 목록 및 채팅
+st.title("🛍️ 우리동네 중고장터")
+st.write("등록된 물건을 확인하고 댓글로 대화해보세요.")
+st.divider()
 
-if not st.session_state.items:
-    st.info("아직 등록된 물건이 없습니다. 왼쪽 사이드바에서 첫 물건을 등록해보세요!")
-
-for idx, item in enumerate(st.session_state.items):
-    with st.container():
-        col1, col2 = st.columns([1, 2])
-        
-        with col1:
-            st.image(item["image"], use_container_width=True)
-            
-        with col2:
-            st.subheader(item["name"])
-            st.write(f"**가격:** {item['price']}원")
-            st.caption(f"판매자: {item['seller']} | 등록시간: {item['date']}")
-            
-            # 채팅 기능 (댓글 방식)
-            with st.expander(f"💬 대화하기 ({len(item['chats'])}개)"):
-                # 기존 메시지 출력
-                for chat in item["chats"]:
-                    st.write(f"**{chat['user']}:** {chat['msg']}")
-                
-                # 메시지 입력
-                chat_user = st.text_input("내 닉네임", key=f"user_{idx}")
-                chat_msg = st.text_input("메시지 입력", key=f"msg_{idx}")
-                if st.button("전송", key=f"btn_{idx}"):
-                    if chat_user and chat_msg:
-                        item["chats"].append({"user": chat_user, "msg": chat_msg})
-                        st.rerun() # 화면 갱신하여 메시지 즉시 표시
-        st.divider()
+# 데이터가 없을 때 메시지
+if not st.session_state["items"]:
+    st.info("아직 등록된 물건이 없습니다. 왼쪽 메뉴에서 물건을 등록해보
