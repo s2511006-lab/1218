@@ -1,2 +1,2 @@
 import streamlit as st
-title("동덕여자고등학교")
+st.title("동덕여자고등학교")
