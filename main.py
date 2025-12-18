@@ -1,27 +1,34 @@
 import streamlit as st
+from datetime import datetime
 
-# 1. 페이지 설정 및 스타일 (당근색 테마)
-st.set_page_config(page_title="우리동네 당근마켓", page_icon="🥕", layout="centered")
+# 1. 페이지 설정
+st.set_page_config(page_title="당근마켓 프로", page_icon="🥕", layout="wide")
 
-# 2. 세션 상태 초기화 (오류 방지를 위해 최상단에 배치)
+# 2. 데이터 초기화 (상품 및 채팅 데이터)
 if 'items' not in st.session_state:
-    st.session_state['items'] = [
-        {"id": 1, "title": "중고 자전거 팔아요", "price": "50,000", "desc": "상태 아주 좋아요!", "tag": "생활용품"},
-        {"id": 2, "title": "아이패드 프로 11인치", "price": "700,000", "desc": "풀박스입니다.", "tag": "디지털기기"}
+    st.session_state.items = [
+        {"id": 1, "title": "맥북 에어 M2", "price": "1,100,000", "tag": "디지털기기", "desc": "실사용 적어요.", "img": None},
+        {"id": 2, "title": "캠핑용 램프", "price": "30,000", "tag": "생활용품", "desc": "감성 캠핑 가능!", "img": None}
+    ]
+if 'messages' not in st.session_state:
+    st.session_state.messages = [] # 채팅 기록 저장
+
+# 3. 사이드바 메뉴 및 검색
+st.sidebar.title("🥕 당근마켓")
+search_query = st.sidebar.text_input("🔍 상품 검색", placeholder="무엇을 찾으시나요?")
+page = st.sidebar.radio("메뉴", ["🏠 홈", "✍️ 판매하기", "💬 당근채팅", "👤 내 정보"])
+
+# --- [페이지 1: 홈 화면 (검색/필터 포함)] ---
+if page == "🏠 홈":
+    st.title("🍊 우리 동네 인기 매물")
+    
+    # 검색 로직 적용
+    display_items = [
+        item for item in st.session_state.items 
+        if search_query.lower() in item['title'].lower() or search_query.lower() in item['desc'].lower()
     ]
 
-# 3. 사이드바 - 메뉴 이동
-st.sidebar.title("🥕 당근마켓")
-page = st.sidebar.radio("메뉴를 선택하세요", ["🏠 홈 (구경하기)", "✍️ 판매하기", "👤 내 정보"])
-
-# --- [페이지 1: 홈 화면] ---
-if page == "🏠 홈 (구경하기)":
-    st.title("🍊 오늘 우리 동네")
-    st.write("새로운 물건들이 올라왔어요!")
-    st.divider()
-
-    # 데이터 안전하게 가져오기
-    current_items = st.session_state.get('items', [])
-
-    if not current_items:
-        st.info("아직 등록된 상품이 없습니다. 첫 번째 물건을 올려보세요!")
+    if not display_items:
+        st.info("검색 결과가 없습니다.")
+    else:
+        # 그리드 레이아웃 (한 줄에 2개
