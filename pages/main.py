@@ -39,3 +39,14 @@ if choice:
     
     with col1:
         st.success("🎯 **추천 진로**")
+        jobs = data[choice]["job"]
+        st.write(f"1. {jobs[0]}")
+        st.write(f"2. {jobs[1]}")
+        
+    with col2:
+        st.info("📖 **추천 도서**")
+        st.write(f"『{data[choice]['book']}』")
+
+    # 디자인 효과
+    st.divider()
+    st.balloons()
