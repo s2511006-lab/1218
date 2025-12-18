@@ -1,28 +1,36 @@
 import streamlit as st
 
 # 1. 앱 설정
-st.set_page_config(page_title="당근마켓 클론", page_icon="🥕", layout="wide")
+st.set_page_config(page_title="당근마켓", page_icon="🥕", layout="wide")
 
-# 2. 세션 상태 초기화 (데이터 저장소)
+# 2. 데이터 초기화
 if 'items' not in st.session_state:
     st.session_state.items = [
-        {"id": 1, "title": "맥북 에어 M2", "price": "1,100,000", "tag": "디지털기기", "desc": "상태 좋아요.", "img": None},
-        {"id": 2, "title": "캠핑용 램프", "price": "30,000", "tag": "생활용품", "desc": "밤에 예뻐요.", "img": None}
+        {"id": 1, "title": "맥북 에어 M2", "price": "1,100,000", "tag": "디지털", "desc": "깨끗해요", "img": None},
+        {"id": 2, "title": "캠핑 의자", "price": "30,000", "tag": "생활", "desc": "편해요", "img": None}
     ]
 if 'messages' not in st.session_state:
     st.session_state.messages = []
 
-# 3. 사이드바 - 이 부분에서 따옴표 오류가 나지 않도록 주의하세요!
+# 3. 사이드바 메뉴
 st.sidebar.title("🥕 당근마켓")
-search_query = st.sidebar.text_input("🔍 상품 검색", "")
-# 메뉴 리스트를 변수로 따로 빼서 가독성을 높였습니다.
-menu_options = ["🏠 홈", "✍️ 판매하기", "💬 당근채팅", "👤 내 정보"]
-page = st.sidebar.radio("메뉴", menu_options)
+search_query = st.sidebar.text_input("🔍 검색", "")
+menu = ["🏠 홈", "✍️ 판매", "💬 채팅", "👤 내정보"]
+page = st.sidebar.radio("메뉴 선택", menu)
 
-# --- [페이지 1: 홈 화면] ---
+# --- [홈 화면] ---
 if page == "🏠 홈":
-    st.title("🍊 우리 동네 매물")
+    st.title("🍊 동네 매물")
     
-    # 검색어 필터링 (제목에 검색어가 포함된 것만 추출)
-    display_items = [
-        item for item in st.session_state.items
+    # 검색 필터링 (리스트 내포 방식을 안전하게 풀어서 씀)
+    display_items = []
+    for item in st.session_state.items:
+        if search_query.lower() in item['title'].lower():
+            display_items.append(item)
+
+    if not display_items:
+        st.info("매물이 없습니다.")
+    else:
+        cols = st.columns(2)
+        for idx, item in enumerate(reversed(display_items)):
+            with cols[idx %
