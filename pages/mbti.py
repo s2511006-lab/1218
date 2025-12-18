@@ -1,50 +1,66 @@
 import streamlit as st
+from datetime import datetime
 
-# 에러 방지를 위해 텍스트 기반의 단순한 제목을 사용합니다.
-st.markdown("# 🧬 MBTI 진로 & 도서 추천")
-st.write("선택하신 MBTI 유형에 딱 맞는 커리어와 책을 추천해 드립니다.")
+# 1. 페이지 설정
+st.set_page_config(page_title="우리동네 중고장터", page_icon="🥕")
 
-# 데이터베이스
-mbti_data = {
-    "ISTJ": {"jobs": ["회계사", "공무원"], "book": "지적 대화를 위한 넓고 얕은 지식"},
-    "ISFJ": {"jobs": ["간호사", "사서"], "book": "나미야 잡화점의 기적"},
-    "INFJ": {"jobs": ["상담가", "작가"], "book": "데미안"},
-    "INTJ": {"jobs": ["데이터 과학자", "전략가"], "book": "사피엔스"},
-    "ISTP": {"jobs": ["엔지니어", "소프트웨어 개발자"], "book": "프로젝트 헤일메리"},
-    "ISFP": {"jobs": ["예술가", "디자이너"], "book": "달러구트 꿈 백화점"},
-    "INFP": {"jobs": ["작가", "상담심리사"], "book": "어린 왕자"},
-    "INTP": {"jobs": ["연구원", "철학자"], "book": "이기적 유전자"},
-    "ESTP": {"jobs": ["기업가", "스포츠 매니저"], "book": "부의 추월차선"},
-    "ESFP": {"jobs": ["연예인", "이벤트 플래너"], "book": "인생의 마지막 순간에서"},
-    "ENFP": {"jobs": ["마케터", "홍보 전문가"], "book": "연금술사"},
-    "ENTP": {"jobs": ["변호사", "광고 기획자"], "book": "생각에 관한 생각"},
-    "ESTJ": {"jobs": ["경영자", "프로젝트 매니저"], "book": "원칙"},
-    "ESFJ": {"jobs": ["초등교사", "호텔리어"], "book": "인간관계론"},
-    "ENFJ": {"jobs": ["정치인", "시민단체 활동가"], "book": "정의란 무엇인가"},
-    "ENTJ": {"jobs": ["CEO", "경영 컨설턴트"], "book": "승자의 법칙"}
-}
+# 2. 데이터 저장소 초기화 (앱이 실행되는 동안 메모리에 유지됨)
+if 'items' not in st.session_state:
+    st.session_state.items = []
 
-# MBTI 선택 박스
-choice = st.selectbox("당신의 MBTI를 선택하세요", sorted(mbti_data.keys()))
-
-# 결과 출력 영역
-if choice:
-    res = mbti_data[choice]
-    
-    st.write("---")
-    st.subheader(f"🔍 {choice} 유형을 위한 맞춤 정보")
-    
-    # 레이아웃 나누기
-    left, right = st.columns(2)
-    
-    with left:
-        st.info("🎯 **추천 진로**")
-        st.write(f"1. {res['jobs'][0]}")
-        st.write(f"2. {res['jobs'][1]}")
+# 3. 사이드바 - 물건 올리기
+with st.sidebar:
+    st.header("🥕 내 물건 팔기")
+    with st.form("upload_form", clear_on_submit=True):
+        seller_name = st.text_input("판매자 닉네임")
+        item_name = st.text_input("물건 이름")
+        item_price = st.text_input("가격 (원)")
+        item_img = st.file_uploader("사진 업로드", type=['jpg', 'png', 'jpeg'])
+        submitted = st.form_submit_button("등록하기")
         
-    with right:
-        st.warning("📖 **추천 도서**")
-        st.write(f"『{res['book']}』")
+        if submitted and seller_name and item_name and item_img:
+            new_item = {
+                "id": len(st.session_state.items),
+                "seller": seller_name,
+                "name": item_name,
+                "price": item_price,
+                "image": item_img.read(), # 사진을 바이너리로 저장
+                "chats": [],
+                "date": datetime.now().strftime("%Y-%m-%d %H:%M")
+            }
+            st.session_state.items.insert(0, new_item) # 최신글이 위로 오게 저장
+            st.success("게시글이 등록되었습니다!")
 
-    # 디자인 효과
-    st.balloons()
+# 4. 메인 화면 - 게시글 목록 및 채팅
+st.title("🥕 당근 스타일 중고거래")
+st.write("실시간으로 올라온 물건을 확인하고 대화를 나눠보세요.")
+
+if not st.session_state.items:
+    st.info("아직 등록된 물건이 없습니다. 왼쪽 사이드바에서 첫 물건을 등록해보세요!")
+
+for idx, item in enumerate(st.session_state.items):
+    with st.container():
+        col1, col2 = st.columns([1, 2])
+        
+        with col1:
+            st.image(item["image"], use_container_width=True)
+            
+        with col2:
+            st.subheader(item["name"])
+            st.write(f"**가격:** {item['price']}원")
+            st.caption(f"판매자: {item['seller']} | 등록시간: {item['date']}")
+            
+            # 채팅 기능 (댓글 방식)
+            with st.expander(f"💬 대화하기 ({len(item['chats'])}개)"):
+                # 기존 메시지 출력
+                for chat in item["chats"]:
+                    st.write(f"**{chat['user']}:** {chat['msg']}")
+                
+                # 메시지 입력
+                chat_user = st.text_input("내 닉네임", key=f"user_{idx}")
+                chat_msg = st.text_input("메시지 입력", key=f"msg_{idx}")
+                if st.button("전송", key=f"btn_{idx}"):
+                    if chat_user and chat_msg:
+                        item["chats"].append({"user": chat_user, "msg": chat_msg})
+                        st.rerun() # 화면 갱신하여 메시지 즉시 표시
+        st.divider()
