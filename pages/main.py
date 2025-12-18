@@ -1,52 +1,40 @@
 import streamlit as st
 
-# 페이지 설정 (가장 상단에 위치해야 함)
-st.set_page_config(page_title="MBTI 진로 추천", page_icon="🚀")
+# 1. 페이지 설정을 가장 먼저 실행하되, 중복 호출 방지를 위해 단순화
+st.set_page_config(page_title="MBTI 진로 추천", layout="centered")
 
-# 1. 데이터 베이스 (외부 라이브러리 없이 딕셔너리로 구현)
-data = {
-    "ISTJ": {"job": ["회계사", "물류 관리자"], "book": "지적 대화를 위한 넓고 얕은 지식"},
-    "ISFJ": {"job": ["간호사", "사서"], "book": "나미야 잡화점의 기적"},
-    "INFJ": {"job": ["상담가", "작가"], "book": "데미안"},
-    "INTJ": {"job": ["전략가", "시스템 분석가"], "book": "사피엔스"},
-    "ISTP": {"job": ["엔지니어", "파일럿"], "book": "프로젝트 헤일메리"},
-    "ISFP": {"job": ["디자이너", "작곡가"], "book": "달러구트 꿈 백화점"},
-    "INFP": {"job": ["사회복지사", "예술가"], "book": "어린 왕자"},
-    "INTP": {"job": ["연구원", "프로그래머"], "book": "이기적 유전자"},
-    "ESTP": {"job": ["경찰관", "영업사원"], "book": "부의 추월차선"},
-    "ESFP": {"job": ["연예인", "이벤트 기획자"], "book": "인생의 마지막 순간에서"},
-    "ENFP": {"job": ["카피라이터", "여행 작가"], "book": "연금술사"},
-    "ENTP": {"job": ["발명가", "광고 디렉터"], "book": "생각에 관한 생각"},
-    "ESTJ": {"job": ["관리자", "군 장교"], "book": "원칙 (레이 달리오)"},
-    "ESFJ": {"job": ["초등교사", "상담사"], "book": "인간관계론"},
-    "ENFJ": {"job": ["정치인", "교사"], "book": "정의란 무엇인가"},
-    "ENTJ": {"job": ["기업가", "변호사"], "book": "승자의 법칙"}
+# 2. 데이터 (외부 라이브러리 미사용)
+mbti_db = {
+    "ISTJ": ["회계사", "공무원", "지적 대화를 위한 넓고 얕은 지식"],
+    "ISFJ": ["간호사", "교사", "나미야 잡화점의 기적"],
+    "INFJ": ["상담가", "작가", "데미안"],
+    "INTJ": ["데이터 과학자", "전략가", "사피엔스"],
+    "ISTP": ["엔지니어", "개발자", "프로젝트 헤일메리"],
+    "ISFP": ["예술가", "디자이너", "달러구트 꿈 백화점"],
+    "INFP": ["작가", "상담가", "어린 왕자"],
+    "INTP": ["연구원", "철학자", "이기적 유전자"],
+    "ESTP": ["기업가", "마케터", "부의 추월차선"],
+    "ESFP": ["배우", "이벤트 기획자", "인생의 마지막 순간에서"],
+    "ENFP": ["홍보 전문가", "카피라이터", "연금술사"],
+    "ENTP": ["변호사", "발명가", "생각에 관한 생각"],
+    "ESTJ": ["경영자", "관리자", "원칙"],
+    "ESFJ": ["호텔리어", "상담사", "인간관계론"],
+    "ENFJ": ["교사", "정치인", "정의란 무엇인가"],
+    "ENTJ": ["CEO", "컨설턴트", "승자의 법칙"]
 }
 
-# 2. 메인 화면 구성
-st.title("🔍 MBTI 맞춤 진로 & 도서 추천")
-st.markdown("---")
+# 3. UI 구현
+st.title("💡 MBTI별 추천 진로 & 도서")
+st.info("자신의 MBTI를 선택하면 맞춤형 정보를 제공합니다.")
 
-# 3. 사용자 선택 UI
-mbti_list = sorted(list(data.keys()))
-choice = st.selectbox("본인의 MBTI를 선택해 주세요.", mbti_list)
+# 드롭다운 메뉴
+mbti_list = sorted(list(mbti_db.keys()))
+user_choice = st.selectbox("MBTI 유형을 선택하세요", mbti_list)
 
-# 4. 결과 표시
-if choice:
-    st.write(f"### 💡 **{choice}** 유형을 위한 추천")
+if user_choice:
+    data = mbti_db[user_choice]
     
-    col1, col2 = st.columns(2)
+    st.markdown("---")
+    st.subheader(f"✨ {user_choice} 유형 결과")
     
-    with col1:
-        st.success("🎯 **추천 진로**")
-        jobs = data[choice]["job"]
-        st.write(f"1. {jobs[0]}")
-        st.write(f"2. {jobs[1]}")
-        
-    with col2:
-        st.info("📖 **추천 도서**")
-        st.write(f"『{data[choice]['book']}』")
-
-    # 디자인 효과
-    st.divider()
-    st.balloons()
+    # 결과
